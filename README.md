@@ -7,7 +7,7 @@
 * **POST** *inserting new data*
 - ## Under work
 * **PUT** *updating existing data*
-* **DELETE** ***deleting existing data*
+* **DELETE** *deleting existing data*
 
 ## I'm currently working on it.
 ## It might take a while I finish it
