@@ -105,10 +105,40 @@ def delete_author_handler(params):
 
     data = [
         {"deleted_author":author_data},
-        {"deleted_book": deleted_book_data}
+        {"deleted_books_by_author": deleted_book_data}
          ]
     
     return 200, {
         "status": "success",
         "data": data
     }
+
+
+def put_author_handler(data, params):
+    id = params.get("id", None)
+    name = data.get("name", None)
+    email = data.get("email", None)
+
+    if not queries.get_authors(id=id):
+        return 404, {
+            "status": "error",
+            "message": "Not Found"
+        }
+    
+    if not name or len(name)<2:
+        return 400, {
+            "status":"error",
+            "message": "name must be atleast 2 characters"
+        }
+    
+    if not email or not is_valid_email(email):     
+        return 400,{
+            "status": "error",
+            "message": "enter a valid Email"
+        }
+    
+    try:
+        row = queries.put_author(id, name, email)
+
+    except Exception:
+        pass

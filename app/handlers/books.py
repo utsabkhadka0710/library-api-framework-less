@@ -69,7 +69,7 @@ def create_book_handler(data):
     if not title or len(title)<1 :
         return 400, {
             "status": "error",
-            "message": "title must be atleast 1 character "
+            "message": "title must be atleast 1 character"
         }
     
     if not isbn or not is_valid_isbn(isbn):
@@ -77,7 +77,7 @@ def create_book_handler(data):
             "status": "invalid isbn"
         }
     
-    if not is_valid_year(published_year):
+    if not published_year or not is_valid_year(published_year):
         return 400, {
             "status": "error",
             "message": "invalid published_year"
@@ -88,8 +88,8 @@ def create_book_handler(data):
             "status": "error",
             "message": "author_id is required"
         }
-    
-    if not queries.author_exists(author_id):
+
+    if not queries.get_authors(id=author_id):
         return 400, {
             "status": "error",
             "message": "author doesn't exist"
@@ -132,5 +132,56 @@ def delete_book_handler(params):
             "error": f"book with id: {id} not found",
         }
 
+def put_book_handler(data, params):
+    book_id = params.get("id",None)
+    title = data.get("title",None)
+    isbn = data.get("isbn",None)
+    published_year = data.get("published_year",None)
+    author_id = data.get("author_id", None)
 
+    if not title or len(title)<1 :
+            return 400, {
+                "status": "error",
+                "message": "title must be atleast 1 character"
+            }
+
+    if not isbn or not is_valid_isbn(isbn):
+        return 400, {
+            "status": "invalid isbn"
+        }
     
+    if not published_year or not is_valid_year(published_year):
+        return 400, {
+            "status": "error",
+            "message": "invalid published_year"
+        }
+    
+    if not author_id:
+        return 400, {
+            "status": "error",
+            "message": "author_id is required"
+        }
+    
+    if not queries.get_authors(id=author_id):
+        return 400, {
+            "status": "error",
+            "message": "author doesn't exist"
+        }
+    
+    row = queries.put_book(id=book_id, title=title, isbn=isbn, published_year=published_year, author_id=author_id)
+
+    if row:
+        updated_data = format_books([row])
+        return 200, {
+            "status": "success",
+            "data": updated_data
+        }
+
+    return 400, {
+        "status": "error",
+        "message": "coundn't update book"
+    }
+
+
+
+

@@ -1,21 +1,6 @@
 from .connection import get_connection
 
 
-def author_exists(author_id):
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id FROM authors WHERE id = %s", (author_id,))
-
-    row = cur.fetchone()
-
-    cur.close()
-    conn.close()
-
-    return row is not None
-
-
-
 def get_authors(name=None, sort=None, order="desc",id=None):
     conn = get_connection()
     cur = conn.cursor()
@@ -93,6 +78,17 @@ def create_author(name, email):
 
 
 
+def put_author(id, email):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    if not get_authors(id=id):
+        return None
+    
+    query = """
+    """
+
+
 def delete_author(id=None):
     conn = get_connection()
     cur = conn.cursor()
@@ -131,6 +127,7 @@ def delete_author(id=None):
     finally:
         cur.close()
         conn.close()
+
 
 
 
@@ -208,7 +205,6 @@ def get_books(title=None, author=None, year=None, sort=None, order="desc",id=Non
 
 
 
-
 def create_book(title, isbn, published_year, author_id):
     conn = get_connection()
     cur = conn.cursor()
@@ -221,6 +217,7 @@ def create_book(title, isbn, published_year, author_id):
         )
 
         new_book = cur.fetchone()
+        print(new_book)
     
         conn.commit()
 
@@ -233,6 +230,51 @@ def create_book(title, isbn, published_year, author_id):
         conn.close()
         
     return new_book
+
+
+def put_book(id, title, isbn, published_year, author_id ):
+    
+    conn = get_connection()
+    cur = conn.cursor()
+
+    if not get_authors(id=author_id):
+        return None
+    
+    params = (title, isbn, published_year, author_id, id)
+
+    query = """WITH updated_book AS (
+                    UPDATE books
+                    SET(title, isbn, published_year, author_id) = (%s, %s, %s, %s)
+                    WHERE id = %s
+                    RETURNING id, title, isbn, published_year, author_id
+                )
+                SELECT
+                    ub.id, ub.title, ub.isbn, ub.published_year, authors.id, authors.name
+                    FROM updated_book as ub
+                    JOIN authors ON ub.author_id = authors.id
+                """
+    
+    try: 
+        cur.execute(query,params)
+        conn.commit()
+
+        row = cur.fetchone()
+
+        print(row)
+
+        cur.close()
+        conn.close()
+
+        return row
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        cur.close()
+        conn.close()
+
 
 
 def delete_book(id=None):
@@ -264,7 +306,7 @@ def delete_book(id=None):
         cur.close()
         conn.close()
 
-        return row if row else ()
+        return row
 
         
     except Exception:

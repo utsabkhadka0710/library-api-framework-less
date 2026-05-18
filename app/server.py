@@ -18,7 +18,8 @@ router.add("POST","/books",books.create_book_handler)
 router.add("DELETE","/authors/<id>",authors.delete_author_handler)
 router.add("DELETE","/books/<id>",books.delete_book_handler)
 
-
+router.add("PUT","/authors/<id>",authors.put_author_handler)
+router.add("PUT","/books/<id>",books.put_book_handler)
 
 class MyHandler(BaseHTTPRequestHandler):
 
@@ -27,6 +28,7 @@ class MyHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type","application/json")
         self.end_headers()
         self.wfile.write(json.dumps(response_data, indent=4).encode())
+
 
     def do_GET(self):
         print("Request received", self.path)
@@ -48,6 +50,9 @@ class MyHandler(BaseHTTPRequestHandler):
             status_code, response_data = 500, {"error": "Internal Server Error"}
 
         self.response_sender(status_code,response_data)
+
+
+
 
     def do_POST(self):
         print("Request received ",self.path)
@@ -79,6 +84,32 @@ class MyHandler(BaseHTTPRequestHandler):
 
 
 
+
+    def do_PUT(self):
+        print("Request received ",self.path)
+
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        content_length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_length)
+
+        try:
+            data = json.loads(body)
+        except:
+            data = {}
+
+        handler, params = router.resolve("PUT",path)
+
+        try:
+            status_code, response_data = handler(data, params)
+
+        except:
+            status_code, response_data = 404, {"error": "Not Found"}
+
+        self.response_sender(status_code,response_data)
+
+        
 
     def do_DELETE(self):
 
